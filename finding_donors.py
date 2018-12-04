@@ -20,7 +20,7 @@
 # ## 探索数据
 # 运行下面的代码单元以载入需要的Python库并导入人口普查数据。注意数据集的最后一列`'income'`将是我们需要预测的列（表示被调查者的年收入会大于或者是最多50,000美元），人口普查数据中的每一列都将是关于被调查者的特征。
 
-# In[1]:
+# In[38]:
 
 
 # 为这个项目导入需要的库
@@ -52,7 +52,7 @@ display(data.head(n=1))
 # 
 # **提示：** 您可能需要查看上面的生成的表，以了解`'income'`条目的格式是什么样的。 
 
-# In[2]:
+# In[39]:
 
 
 # TODO：总的记录数
@@ -62,7 +62,7 @@ n_records = len(data)
 n_greater_50k = len(data[data.income == '>50K'])
 
 # TODO：被调查者的收入最多为$50,000的人数
-n_at_most_50k = len(data[data.income == '<50K'])
+n_at_most_50k = len(data[data.income == '<=50K'])
 
 # TODO：被调查者收入大于$50,000所占的比例
 greater_percent = float(n_greater_50k) / n_records * 100
@@ -81,7 +81,7 @@ print ("Percentage of individuals making more than $50,000: {:.2f}%".format(grea
 # ### 获得特征和标签
 # `income` 列是我们需要的标签，记录一个人的年收入是否高于50K。 因此我们应该把他从数据中剥离出来，单独存放。
 
-# In[3]:
+# In[40]:
 
 
 # 将数据切分成特征和对应的标签
@@ -95,7 +95,7 @@ features_raw = data.drop('income', axis = 1)
 # 
 # 运行下面的代码单元以创建一个关于这两个特征的条形图。请注意当前的值的范围和它们是如何分布的。
 
-# In[4]:
+# In[41]:
 
 
 # 可视化 'capital-gain'和'capital-loss' 两个特征
@@ -106,7 +106,7 @@ vs.distribution(features_raw)
 # 
 # 运行下面的代码单元来执行数据的转换和可视化结果。再次，注意值的范围和它们是如何分布的。
 
-# In[5]:
+# In[42]:
 
 
 # 对于倾斜的数据使用Log转换
@@ -122,7 +122,7 @@ vs.distribution(features_raw, transformed = True)
 # 
 # 运行下面的代码单元来规一化每一个数字特征。我们将使用[`sklearn.preprocessing.MinMaxScaler`](http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html)来完成这个任务。
 
-# In[6]:
+# In[43]:
 
 
 from sklearn.preprocessing import MinMaxScaler
@@ -151,7 +151,7 @@ display(features_raw.head(n = 1))
 #  - 将目标标签`'income_raw'`转换成数字项。
 #    - 将"<=50K"转换成`0`；将">50K"转换成`1`。
 
-# In[7]:
+# In[44]:
 
 
 # TODO：使用pandas.get_dummies()对'features_raw'数据进行独热编码
@@ -173,7 +173,7 @@ print ("{} total features after one-hot encoding.".format(len(encoded)))
 # 
 # 运行下面的代码单元来完成切分。
 
-# In[8]:
+# In[45]:
 
 
 # 导入 train_test_split
@@ -211,7 +211,7 @@ print ("Testing set has {} samples.".format(X_test.shape[0]))
 # *如果我们选择一个无论什么情况都预测被调查者年收入大于 \$50,000 的模型，那么这个模型在**验证集上**的准确率，查准率，查全率和 F-score是多少？*  
 # 
 
-# In[9]:
+# In[46]:
 
 
 #不能使用scikit-learn，你需要根据公式自己实现相关计算。
@@ -354,7 +354,7 @@ print ("Naive Predictor on validation data: \n     Accuracy score: {:.4f} \n    
 #  - 计算预测训练集的前300个数据点的准确率和F-score。
 #  - 计算预测验证集的准确率和F-score。
 
-# In[10]:
+# In[47]:
 
 
 # TODO：从sklearn中导入两个评价指标 - fbeta_score和accuracy_score
@@ -421,7 +421,7 @@ def train_predict(learner, sample_size, X_train, y_train, X_val, y_val):
 # 
 # **注意：**取决于你选择的算法，下面实现的代码可能需要一些时间来运行！
 
-# In[11]:
+# In[48]:
 
 
 # TODO：从sklearn中导入三个监督学习模型
@@ -473,13 +473,21 @@ vs.evaluate(results, accuracy, fscore)
 # *用一到两段话，向 *CharityML* 用外行也听得懂的话来解释最终模型是如何工作的。你需要解释所选模型的主要特点。例如，这个模型是怎样被训练的，它又是如何做出预测的。避免使用高级的数学或技术术语，不要使用公式或特定的算法名词。*
 
 # **回答： ** 
-# - 训练 
-#   - 在所有的数据集中找出区分当前数据的特征数据，并对数据进行分割
-#   - 对分割后的数据重复以上步骤不断进行特征提取，直到找到所有的特征数据
-#   - 这种不断特征数据提取的过程就构成了决策树
-#   - 每次执行的时候对样本进行随机有放回的抽样，构成多个不一样的决策树，这些决策树合并起来就是随机森林
-# - 预测 
-#   -  对于新来的样本，每个决策树做一个分类结果进行相等权重投票，然后以多数者投票的结果作为该样本的分类结果
+# 
+# - 随机森林采用多个决策树的投票机制来改善决策树，我们假设随机森林使用了m棵决策树，那么就需要产生m个一定数量的样本集来训练每一棵树，如果用全样本去训练m棵决策树显然是不可取的，全样本训练忽视了局部样本的规律，对于模型的泛化能力是有害的;
+# - 采用有放回的抽样法产生n个样本，最终结果采用多数投票机制策略来获得
+# 
+# - 随机森林的生成方法：
+# 
+#   - 从样本集中通过重采样的方式产生n个样本
+# 
+#   - 假设样本特征数目为a，对n个样本选择a中的k个特征，用建立决策树的方式获得最佳分割点
+# 
+#   - 重复m次，产生m棵决策树
+# 
+#   - 多数投票机制来进行预测
+# 
+# （需要注意的一点是，这里m是指循环的次数，n是指样本的数目，n个样本构成训练的样本集，而m次循环中又会产生m个这样的样本集）
 
 # ### 练习：模型调优
 # 调节选择的模型的参数。使用网格搜索（GridSearchCV）来至少调整模型的重要参数（至少调整一个），这个参数至少需尝试3个不同的值。你要使用整个训练集来完成这个过程。在接下来的代码单元中，你需要实现以下功能：
@@ -496,7 +504,7 @@ vs.evaluate(results, accuracy, fscore)
 # 
 # **注意：** 取决于你选择的参数列表，下面实现的代码可能需要花一些时间运行！
 
-# In[34]:
+# In[49]:
 
 
 # TODO：导入'GridSearchCV', 'make_scorer'和其他一些需要的库
@@ -583,7 +591,7 @@ print ("Final F-score on the validation data: {:.4f}".format(fbeta_score(y_val, 
 #  - 在整个训练集上训练一个监督学习模型。
 #  - 使用模型中的 `'feature_importances_'`提取特征的重要性。
 
-# In[36]:
+# In[50]:
 
 
 # TODO：导入一个有'feature_importances_'的监督学习模型
@@ -617,7 +625,7 @@ vs.feature_plot(importances, X_train, y_train)
 # 
 # 如果我们只是用可用特征的一个子集的话模型表现会怎么样？通过使用更少的特征来训练，在评价指标的角度来看我们的期望是训练和预测的时间会更少。从上面的可视化来看，我们可以看到前五个最重要的特征贡献了数据中**所有**特征中超过一半的重要性。这提示我们可以尝试去**减小特征空间**，简化模型需要学习的信息。下面代码单元将使用你前面发现的优化模型，并**只使用五个最重要的特征**在相同的训练集上训练模型。
 
-# In[37]:
+# In[51]:
 
 
 # 导入克隆模型的功能
@@ -658,7 +666,7 @@ print ("F-score on validation data: {:.4f}".format(fbeta_score(y_val, reduced_pr
 # *使用你最有信心的模型，在测试集上测试，计算出准确率和 F-score。*
 # *简述你选择这个模型的原因，并分析测试结果*
 
-# In[56]:
+# In[52]:
 
 
 #TODO test your model on testing data and report accuracy and F score
